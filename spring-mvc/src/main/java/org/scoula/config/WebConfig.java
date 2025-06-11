@@ -4,6 +4,7 @@ import org.springframework.web.filter.CharacterEncodingFilter;
 import org.springframework.web.servlet.support.AbstractAnnotationConfigDispatcherServletInitializer;
 
 import javax.servlet.Filter;
+import javax.servlet.ServletRegistration;
 
 /*
 * Web 설정
@@ -32,7 +33,7 @@ public class WebConfig extends AbstractAnnotationConfigDispatcherServletInitiali
 
     //http의 body로 전송되는 post방식의 데이터는
     //프론트컨트롤러가 받기 전에 미리 utf-8로 인코딩을 먼저 한 후
-    //받게 설정함.
+    //받게 설정함. -> 한글 안꺠지게
     @Override
     protected Filter[] getServletFilters() {
         CharacterEncodingFilter characterEncodingFilter = new CharacterEncodingFilter();
@@ -40,5 +41,16 @@ public class WebConfig extends AbstractAnnotationConfigDispatcherServletInitiali
         characterEncodingFilter.setForceEncoding(true);
 
         return new Filter[] {characterEncodingFilter};
+    }
+
+
+    /*
+    * DispatchServlet이 매핑되지 않은 요청을 받았을 때
+    * 기본적으로 404 NOT FOUND를 클라이언트에세 반환함
+    * 이 설정을 추가하면 예외(ThrowExceptionIfNoHandlerFound)를 강제로 던지게 함
+    * */
+    @Override
+    protected void customizeRegistration(ServletRegistration.Dynamic registration) {
+        registration.setInitParameter("ThrowExceptionIfNoHandlerFound", "true");
     }
 }
