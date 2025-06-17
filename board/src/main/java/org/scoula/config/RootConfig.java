@@ -13,15 +13,15 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 import javax.sql.DataSource;
 
 @Configuration
 @PropertySource({"classpath:/application.properties"})
-@MapperScan(basePackages = {
-        "org.scoula.board.mapper"
-})
+@MapperScan(basePackages = {"org.scoula.board.mapper"})
 @ComponentScan(basePackages={ "org.scoula.board.service" })
+@EnableTransactionManagement
 public class RootConfig {
     @Value("${jdbc.driver}")
     String driver;
@@ -31,6 +31,7 @@ public class RootConfig {
     String username;
     @Value("${jdbc.password}")
     String password;
+
     @Autowired
     ApplicationContext applicationContext;
 

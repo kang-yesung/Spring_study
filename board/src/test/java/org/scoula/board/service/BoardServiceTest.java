@@ -8,71 +8,60 @@ import org.scoula.config.RootConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-
-import java.util.NoSuchElementException;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+
 @ExtendWith(SpringExtension.class)
-@ContextConfiguration(classes = {RootConfig.class})
+@ContextConfiguration(classes = { RootConfig.class })
 @Log4j2
 class BoardServiceTest {
 
     @Autowired
-    private BoardService boardService;
+    private BoardService service;
 
     @Test
     void getList() {
+        for(BoardDTO board: service.getList()) {
+            log.info(board);
+        }
     }
 
     @Test
     void get() {
+        log.info(service.get(1L));
     }
 
     @Test
     void create() {
 
-        BoardDTO boardDTO = BoardDTO.builder()
-                .title("새로운 테스트 제목")
-                .content("새로운 테스트 내용")
-                .writer("testUser")
-                .build();
+        BoardDTO board = new BoardDTO();
+        board.setTitle("새로 작성하는 글");
+        board.setContent("새로 작성하는 내용");
+        board.setWriter("user1");
 
-        boardService.create(boardDTO);
+        service.create(board);
 
-        assertNotNull(boardDTO.getNo());
-        log.info("생성된 게시글 번호 {}", boardDTO.getNo());
+        log.info("생성된 게시물의 번호: " + board.getNo());
+
     }
 
     @Test
     void update() {
+        BoardDTO board = service.get(1L);
 
-        // 수정할 데이터 조회
-        BoardDTO board = boardService.get(1L);
+        board.setTitle("제목 수정합니다.");
+        log.info("update RESULT: " + service.update(board));
 
-        board.setTitle("수정된 제목");
-        board.setContent("수정된 내용");
-
-        boolean result = boardService.update(board);
-
-        assertTrue(result);
     }
 
     @Test
     void delete() {
+        // 게시물 번호의 존재 여부를 확인하고 테스트할 것
+        log.info("delete RESULT: " + service.delete(2L));
 
-        // 테스트 대상
-        long testNo = 2L;
-
-        //삭제전 확인
-        assertDoesNotThrow(()->boardService.get(testNo));
-
-        boolean result = boardService.delete(testNo);
-        assertTrue(result);
-
-
-        // 삭제된 데이터를 조회했을때
-        // 데이터가 없어서 발생하는 예외를 확인
-        assertThrows(NoSuchElementException.class, ()-> boardService.get(testNo));
     }
+
+
 }

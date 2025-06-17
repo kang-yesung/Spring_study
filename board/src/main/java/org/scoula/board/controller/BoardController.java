@@ -1,80 +1,99 @@
 package org.scoula.board.controller;
 
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.scoula.board.domain.BoardAttachmentVO;
 import org.scoula.board.dto.BoardDTO;
 import org.scoula.board.service.BoardService;
+import org.scoula.common.util.UploadFiles;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+import javax.servlet.http.HttpServletResponse;
+import java.io.File;
 
 @Log4j2
 @Controller
 @RequestMapping("/board")
-@RequiredArgsConstructor // final filed 생성자 자동 생성
+@RequiredArgsConstructor
 public class BoardController {
 
-    //의존성 주입
-    final private BoardService boardService;
+    private final BoardService service;
 
-    // 목록조회
-    @GetMapping("/list")
-    public void list(Model model){
-        log.info("list 동작");
+//    public BoardController(BoardService service) {
+//        this.service = service;
+//    }
 
-        List<BoardDTO> boardDTOList =  boardService.getList();
+    @GetMapping("/list") //board/list
+    public void list(Model model) {
+        //db에서 가지고 온 것 있어야함.
+        //Controller --> Service --> dao
+        log.info("===============> BoardController /list");
+        model.addAttribute("list", service.getList());
+        //요청한 주소와 views의 호출할 파일명이 같으면 return안해도됨.
+    }
+//    @GetMapping("/get") //board/get
+//    @GetMapping("/create") //board/create(입력화면 보여줘)
+//    @GetMapping("/update") //board/update(수정하기 전에 검색먼저해서 한번 보여줘)
+//
+//    @PostMapping("/create") //board/create(입력한거 db처리해줘)
 
-        log.info("boardList 1번째 데이터 {}", boardDTOList.get(1));
-        //boardDTO 리스트 모델에 담기
-        model.addAttribute("list", boardService.getList());
+    @GetMapping("/create")
+    public void create() {
+        log.info("create");
     }
 
-    //상세조회(단건조회)
-    @GetMapping("/get")
-    public void get(@RequestParam("no")long no, Model model){
-        log.info("/get");
-
-        BoardDTO boardDTO = boardService.get(no);
-
-        log.info("boardService.get()======== boardDTO {}", boardDTO);
-        model.addAttribute("board", boardDTO);
-    }
-
-
-    // 글 등록
     @PostMapping("/create")
-    public String create(BoardDTO board){
-        log.info("생성요청 create: " + board);
-
-        boardService.create(board);
-
+    public String create(BoardDTO board) {
+        log.info("create: " + board);
+        service.create(board);
         return "redirect:/board/list";
     }
 
-    // 업데이트
+    @GetMapping({"/get", "/update"})
+    public void get(@RequestParam("no") Long no, Model model) {
+        log.info("/get or update");
+        model.addAttribute("board", service.get(no));
+        /* url에 따라 jsp 파일을  "board/get" 또는 "board/update" 반환 */
+    }
+
     @PostMapping("/update")
-    public String update(BoardDTO board){
-        log.info("/update");
-        boolean result = boardService.update(board);
-
-        log.info("update결과 {}", result);
+    public String update(BoardDTO board) {
+        log.info("update:" + board);
+        service.update(board);
         return "redirect:/board/list";
     }
 
-    //삭제
     @PostMapping("/delete")
-    public String delete(@RequestParam("no") long no){
-        log.info("/delete");
-
-        boolean result = boardService.delete(no);
-
+    public String delete(@RequestParam("no") Long no) {
+        log.info("delete..." + no);
+        service.delete(no);
         return "redirect:/board/list";
     }
+
+    /**
+     * 파일 다운로드 처리
+     *
+     * @param no       첨부파일 번호
+     * @param response HTTP 응답 객체
+     * @throws Exception
+     */
+    @GetMapping("/download/{no}")
+    @ResponseBody  // View를 사용하지 않고 직접 응답 데이터 전송
+    public void download(@PathVariable("no") Long no,
+                         HttpServletResponse response) throws Exception {
+
+        // 첨부파일 정보 조회
+        BoardAttachmentVO attach = service.getAttachment(no);
+
+        // 실제 파일 객체 생성
+        // (java.io.File)
+        File file = new File(attach.getPath());
+
+        // 파일 다운로드 처리
+        UploadFiles.download(response, file, attach.getFilename());
+    }
+
 
 }

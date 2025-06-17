@@ -1,6 +1,7 @@
 package org.scoula.board.mapper;
 
 import org.apache.ibatis.annotations.Select;
+import org.scoula.board.domain.BoardAttachmentVO;
 import org.scoula.board.domain.BoardVO;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Repository;
@@ -12,18 +13,22 @@ import java.util.List;
 public interface BoardMapper {
 
     //@Select("select * from tbl_board order by no desc")
-    List<BoardVO> getList();
+    public List<BoardVO> getList();
+    public BoardVO get(Long no);
+    public void create(BoardVO board);
+    public int update(BoardVO board);
+    public int delete(Long no);
+    /* 첨부파일 관련 메서드 추가 */
+    // 첨부파일 등록
+    public void createAttachment(BoardAttachmentVO attach);
 
-    //상세검색
-    BoardVO get(Long no);
+    // 특정 게시글의 첨부 파일 목록 조회
+    public List<BoardAttachmentVO> getAttachmentList(Long bno);
 
-    //게시판 글쓰기 ==> vo가 거의 대부분임.
-    void create(BoardVO board);
+    // 특정 첨부 파일 1개 조회
+    public BoardAttachmentVO getAttachment(Long no);
 
-    //게시판 글 업데이트
-    public int update(BoardVO boardVO);
+    // 특정 첨부 파일 1개 삭제
+    public int deleteAttachment(Long no);
 
-    //게시판 글 삭제
-
-    int delete(Long  no);
 }
